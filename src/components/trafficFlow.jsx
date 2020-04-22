@@ -158,6 +158,28 @@ class TrafficFlow extends React.Component {
         if (res && res.status === 200) {
           this.traffic.clientUpdateTime = Date.now();
           this.updateData(res.body);
+		  
+		  /* Start websocket */
+		  var connection = new WebSocket('ws://' + location.host + ':3001')
+			// When the connection is open, send some data to the server
+			connection.onopen = function () {
+			  connection.send('Ping'); // Send the message 'Ping' to the server
+			};
+
+			// Log errors
+			connection.onerror = function (error) {
+			  console.log('WebSocket Error', error);
+			};
+
+			// Log messages from the server
+			connection.onmessage = function (e) {
+			  console.log('Server: ' + e.data);
+			};		  
+			connection.onmessage = (e) => {
+				console.log( 'Message', e); // ArrayBuffer object if binary
+				let newstate = JSON.parse( e.data )
+				this.updateData( newstate )
+			};
         }
       });
   }
